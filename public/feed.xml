@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>João Moreira — Articles</title>
+    <link>https://jpsmoreira.com</link>
+    <description>Articles by João Moreira on developer experience, MES, and software engineering.</description>
+    <language>en</language>
+    <item>
+      <title>Debugging Is Developer Experience</title>
+      <link>https://jpsmoreira.com/articles/debugging-is-developer-experience</link>
+      <guid>https://jpsmoreira.com/articles/debugging-is-developer-experience</guid>
+      <pubDate>Sun, 16 Aug 2026 00:00:00 GMT</pubDate>
+      <description>Why the quality of your worst moment — not your best demo — defines a platform's DevX.</description>
+    </item>
+  </channel>
+</rss>

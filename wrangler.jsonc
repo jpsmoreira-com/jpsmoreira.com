@@ -1,0 +1,18 @@
+{
+  // Cloudflare Workers config — static site served from ./public
+  "name": "jpsmoreira-com",
+  "compatibility_date": "2026-08-01",
+  // Regenerates article pages, the homepage list, and feed.xml before every deploy/dev
+  "build": {
+    "command": "npm run build",
+    "watch_dir": ["content", "templates"]
+  },
+  "assets": {
+    "directory": "./public",
+    "not_found_handling": "404-page"
+  },
+  "routes": [
+    { "pattern": "jpsmoreira.com", "custom_domain": true },
+    { "pattern": "www.jpsmoreira.com", "custom_domain": true }
+  ]
+}

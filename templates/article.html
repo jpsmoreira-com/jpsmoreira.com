@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{TITLE}} — João Moreira</title>
+  <meta name="description" content="{{DESCRIPTION}}">
+  <meta property="og:title" content="{{TITLE}}">
+  <meta property="og:description" content="{{DESCRIPTION}}">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://jpsmoreira.com/articles/{{SLUG}}">
+  <meta property="og:image" content="https://jpsmoreira.com/joao-moreira.jpg">
+  <meta name="theme-color" content="#fafaf8" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0e1116" media="(prefers-color-scheme: dark)">
+  <link rel="canonical" href="https://jpsmoreira.com/articles/{{SLUG}}">
+  <link rel="alternate" type="application/rss+xml" title="João Moreira — Articles" href="/feed.xml">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+  <header class="site-header">
+    <nav class="nav container">
+      <a href="/" class="nav-logo" aria-label="Home">JM<span class="accent">.</span></a>
+      <button class="nav-toggle" aria-label="Menu" aria-expanded="false" aria-controls="nav-links">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="nav-links" id="nav-links">
+        <a href="/#about">About</a>
+        <a href="/#expertise">Expertise</a>
+        <a href="/#career">Career</a>
+        <a href="/#talks">Talks</a>
+        <a href="/#contact">Contact</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <article class="article container">
+      <header class="article-header">
+        <p class="mono article-meta"><span class="pub-tag pub-tag-{{TYPE_CLASS}} mono">{{TYPE_LABEL}}</span> &nbsp;{{DATE_HUMAN}} · João Moreira</p>
+        <h1>{{TITLE}}</h1>
+        <p class="article-lede">{{LEDE}}</p>
+      </header>
+
+{{CONTENT}}
+
+      <footer class="article-footer">
+        <p class="muted"><em>João Moreira has spent 17+ years building Critical Manufacturing MES — as engineer, technical manager, architect, and developer advocate. He currently focuses on documentation and tools for the MES developer ecosystem.</em></p>
+        <p><a href="/#talks">← Back to all talks &amp; articles</a></p>
+      </footer>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>© <span id="year">2026</span> João Moreira · Porto, Portugal</p>
+    </div>
+  </footer>
+
+  <script src="/nav.js"></script>
+  <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+</body>
+</html>
