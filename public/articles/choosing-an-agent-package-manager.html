@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Choosing an Agent Package Manager — João Moreira</title>
+  <meta name="description" content="I tried Sentry's dotagents and Microsoft's APM to share skills, prompts and MCP servers across a team. Here's why APM won.">
+  <meta property="og:title" content="Choosing an Agent Package Manager">
+  <meta property="og:description" content="I tried Sentry's dotagents and Microsoft's APM to share skills, prompts and MCP servers across a team. Here's why APM won.">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://jpsmoreira.com/articles/choosing-an-agent-package-manager">
+  <meta property="og:image" content="https://jpsmoreira.com/joao-moreira.jpg">
+  <meta name="theme-color" content="#fafaf8" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0e1116" media="(prefers-color-scheme: dark)">
+  <link rel="canonical" href="https://jpsmoreira.com/articles/choosing-an-agent-package-manager">
+  <link rel="alternate" type="application/rss+xml" title="João Moreira — Articles" href="/feed.xml">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+  <header class="site-header">
+    <nav class="nav container">
+      <a href="/" class="nav-logo" aria-label="Home">JM<span class="accent">.</span></a>
+      <button class="nav-toggle" aria-label="Menu" aria-expanded="false" aria-controls="nav-links">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="nav-links" id="nav-links">
+        <a href="/#about">About</a>
+        <a href="/#expertise">Expertise</a>
+        <a href="/#career">Career</a>
+        <a href="/#talks">Talks</a>
+        <a href="/#contact">Contact</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <article class="article container">
+      <header class="article-header">
+        <p class="mono article-meta"><span class="pub-tag pub-tag-article mono">Article</span> &nbsp;September 21, 2026 · João Moreira</p>
+        <h1>Choosing an Agent Package Manager</h1>
+        <p class="article-lede">Skills, prompts, instructions and MCP servers are now dependencies. I tried Sentry's dotagents and Microsoft's APM to manage them across a team using Copilot, Claude Code and Codex — and why APM won.</p>
+      </header>
+
+<p>Somewhere in the last year, the files that shape how an AI coding agent behaves in a repository stopped being a curiosity and became infrastructure. <code>AGENTS.md</code>, <code>CLAUDE.md</code>, <code>.github/copilot-instructions.md</code>, a <code>skills/</code> folder, a handful of prompts, an <code>.mcp.json</code> — every team I work with now has a pile of these, and the pile is growing.</p>
+<p>And we were managing that pile the way we managed JavaScript dependencies in 2009: copy it in, hope it doesn&#39;t drift.</p>
+<p>Our own version of this was a devcontainer post-create script that cloned a shared skills repository into each project. It worked, in the sense that a <code>git clone</code> in a shell script always works. It also meant nobody knew which version of which skill a given repo was actually running, updates were &quot;re-create your container&quot;, and anything beyond skills — prompts, instructions, MCP servers — still had to be hand-copied per tool. Three agents, three folder layouts, three copies of the same intent.</p>
+<p>This is a dependency management problem. It deserves a dependency manager. So I tried two.</p>
+<h2>The two candidates</h2>
+<p><strong><a href="https://dotagents.sentry.dev/">dotagents</a></strong> is Sentry&#39;s answer. You declare skills, MCP servers, hooks, subagents and plugins in an <code>agents.toml</code>, run <code>npx @sentry/dotagents install</code>, and it materializes a <code>.agents/</code> directory and symlinks or generates the right thing into <code>.claude/</code>, <code>.cursor/</code>, <code>.codex/</code>, <code>.opencode/</code> and friends. It has a lockfile (<code>agents.lock</code>) with commit pins and integrity hashes, a <code>--frozen</code> mode for CI, and a trust policy that restricts which GitHub orgs you&#39;ll pull from. Sentry dogfoods it across their own repositories, which is always a good sign.</p>
+<p><strong><a href="https://microsoft.github.io/apm/">APM</a></strong> — Agent Package Manager — is Microsoft&#39;s. Same shape of idea: one manifest (<code>apm.yml</code>), one <code>apm install</code>, a lockfile (<code>apm.lock.yaml</code>), and per-harness output. But it goes further on what it considers a dependency. APM manages eight primitive types — instructions, skills, prompts, agents, hooks, commands, plugins and MCP servers — and it <em>compiles</em> them into harness-native files rather than only linking them. It targets GitHub Copilot, Claude Code, Codex, Cursor, OpenCode, Gemini, Windsurf, Kiro and a growing tail of others.</p>
+<p>Both are MIT. Both are young. Both are honest about being young — dotagents says &quot;beta&quot; on its docs page; APM has a public roadmap and a changelog that moves weekly.</p>
+<p>A minimal manifest for each, to make the shape concrete:</p>
+<pre><code class="language-toml"># agents.toml (dotagents)
+version = 1
+agents = [&quot;claude&quot;, &quot;codex&quot;, &quot;copilot&quot;]
+
+[trust]
+github_orgs = [&quot;my-org&quot;]
+
+[[skills]]
+name = &quot;find-bugs&quot;
+source = &quot;my-org/skills&quot;
+</code></pre>
+<pre><code class="language-yaml"># apm.yml (APM)
+name: my-service
+version: 1.0.0
+targets:
+  - copilot
+  - claude
+  - codex
+dependencies:
+  apm:
+    - my-org/agent-skills#v2.1.0
+  mcp:
+    - io.github.github/github-mcp-server
+</code></pre>
+<h2>Why I started with Claude</h2>
+<p>I&#39;ll be upfront about the thing that actually tipped me, because it&#39;s less noble than a feature matrix.</p>
+<p>Claude Code is where I do most of my own agentic work, and it is also the harness with the richest set of configuration surfaces: skills, subagents, slash commands, hooks, plugins with marketplaces, and <code>CLAUDE.md</code> itself. A package manager that only handles the skills part handles the part I could already solve with a symlink.</p>
+<p>dotagents covers Claude well for what it declares — skills get symlinked into <code>.claude/skills/</code>, MCP servers land in <code>.mcp.json</code>, hooks and subagents are generated. But its model is <em>skills-first</em>. Prompts and instructions — the things that turn into slash commands and <code>CLAUDE.md</code> content — aren&#39;t primitives it manages. That is exactly the material a team most needs to share consistently, and it was the material I was still copying by hand.</p>
+<p>APM treats instructions and prompts as first-class. <code>apm install</code> deploys them into <code>.claude/</code>, skills into the harness-neutral <code>.agents/skills/</code>, and <code>apm compile</code> produces the instruction files each harness reads (<code>CLAUDE.md</code>, <code>AGENTS.md</code>, <code>.github/copilot-instructions.md</code>) from one source. You can pack your own package as a Claude Code plugin bundle, and you can reference plugins from a marketplace directly in the manifest (<code>name@marketplace#ref</code>). The first time I cloned a repo, ran one command, and had Claude Code, Copilot and Codex all wired with the <em>same</em> instructions, prompts and MCP servers — not three approximations of them — was the moment I stopped evaluating.</p>
+<h2>What else tipped it</h2>
+<p>Once I was in, a few things kept me there. In rough order of how much they matter to a team rather than to me:</p>
+<p><strong>Breadth of harness support, without favouritism.</strong> Microsoft owns Copilot, so you&#39;d expect APM to be Copilot-first. It isn&#39;t, in practice: Claude Code and Codex are proper targets with their own output paths, not afterthoughts. dotagents supports Claude, Cursor, Codex, VS Code and OpenCode well, but its Copilot story is thinner — and for a team where most people live in VS Code with Copilot and a few of us live in a Claude Code terminal, both halves have to work.</p>
+<p><strong>A real lockfile discipline.</strong> Both tools have lockfiles; APM&#39;s behaves like <code>npm ci</code>. <code>apm install --frozen</code> refuses anything not in the lock, <code>apm audit --ci</code> re-hashes what was actually deployed and fails the build on drift, and there&#39;s a <a href="https://github.com/microsoft/apm-action">GitHub Action</a> that does exactly this in a workflow. Semver ranges on git dependencies (<code>^1.2.0</code>) mean you can be deliberate about which updates you take.</p>
+<p><strong>Security that assumes the packages are hostile.</strong> This one surprised me. Every install scans the files it&#39;s about to deploy for hidden Unicode, tag characters and bidi overrides — the tricks that make a prompt say one thing to a human and another to a model. Transitive MCP servers are blocked unless declared or trusted. There&#39;s SBOM export. And there&#39;s <code>apm-policy.yml</code>: organisation-level policy that repos can only <em>tighten</em>, never relax. If you&#39;ve ever had to explain to a security team why an agent config repo is &quot;fine&quot;, you&#39;ll appreciate someone having done the thinking.</p>
+<p><strong>Community gravity.</strong> At the time of writing the <a href="https://github.com/microsoft/apm">APM repository</a> sits around 3.9k stars with a few hundred forks; <a href="https://github.com/getsentry/dotagents">dotagents</a> is in the low hundreds. Stars are a vanity metric — until you need a package. Azure, Power Platform and a growing set of vendor skill packs ship as APM packages, so &quot;install the thing that knows about the platform&quot; is already a one-liner for a lot of platforms. The more that&#39;s true, the less each team writes from scratch.</p>
+<p><strong>Distribution.</strong> <code>brew install apm</code>, <code>pip install apm-cli</code>, WinGet, Scoop, a curl script. Being able to put it in a devcontainer <code>Dockerfile</code> without a Node toolchain is a small thing that removes a surprising number of support conversations.</p>
+<h2>Where dotagents is better</h2>
+<p>I don&#39;t want this to read as a takedown, because dotagents gets things right that APM doesn&#39;t.</p>
+<p>Its <strong>global mode</strong> is genuinely nicer. <code>~/.agents/</code> as your personal setup, one <code>agents.toml</code> for the tools you carry from project to project, <code>--project</code> when you want a committed team config. APM has global installs too, but the mental model is project-first and it shows.</p>
+<p><strong>Symlinks over copies.</strong> dotagents links skills from <code>.agents/skills/</code> into each harness&#39;s folder. One file on disk, no drift by construction. APM&#39;s newer harness-neutral <code>.agents/skills/</code> path moves in the same direction, but there&#39;s still more generated output in a repo than I&#39;d like.</p>
+<p><strong>Simplicity.</strong> <code>agents.toml</code> is short and readable and does exactly what it says. APM&#39;s manifest, policy file, lock file, <code>.apm/</code> authoring folder and compile step are more to learn. If your problem is &quot;share five skills across two tools&quot;, dotagents is the right size for it.</p>
+<p>And Sentry&#39;s <strong>trust policy</strong> — a list of GitHub orgs you&#39;ll accept sources from, checked before any network call — is a simple, well-placed guardrail that APM expresses in a heavier way.</p>
+<h2>The comparison, compressed</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>dotagents</th>
+<th>APM</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Manifest</td>
+<td><code>agents.toml</code></td>
+<td><code>apm.yml</code></td>
+</tr>
+<tr>
+<td>Lockfile / frozen installs</td>
+<td><code>agents.lock</code>, <code>--frozen</code></td>
+<td><code>apm.lock.yaml</code>, <code>--frozen</code>, <code>apm audit --ci</code></td>
+</tr>
+<tr>
+<td>Skills</td>
+<td>✓ (symlinked)</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>MCP servers</td>
+<td>✓</td>
+<td>✓ (with transitive trust gating)</td>
+</tr>
+<tr>
+<td>Subagents / hooks</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Prompts / slash commands</td>
+<td>—</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Instructions → <code>CLAUDE.md</code> / <code>AGENTS.md</code> / Copilot</td>
+<td>—</td>
+<td>✓ (<code>apm compile</code>)</td>
+</tr>
+<tr>
+<td>Plugins</td>
+<td>✓</td>
+<td>✓ (pack + marketplace refs)</td>
+</tr>
+<tr>
+<td>Claude Code · Codex</td>
+<td>✓ · ✓</td>
+<td>✓ · ✓</td>
+</tr>
+<tr>
+<td>GitHub Copilot</td>
+<td>partial</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Content scanning / policy</td>
+<td>trust list by org</td>
+<td>Unicode scanning, SBOM, <code>apm-policy.yml</code></td>
+</tr>
+<tr>
+<td>Install</td>
+<td><code>npx</code></td>
+<td>brew · pip · winget · scoop · curl</td>
+</tr>
+<tr>
+<td>Maturity</td>
+<td>beta</td>
+<td>active, weekly releases</td>
+</tr>
+</tbody></table>
+<h2>What I&#39;d tell a team</h2>
+<p>If you are one person keeping your own agent setup in sync across tools, or a small team whose shared material is skills and an MCP server or two, dotagents is lighter and will make you happy.</p>
+<p>If you&#39;re a platform team — if the point is that <em>twenty repositories</em> run the <em>same</em> instructions, prompts and tools across Copilot, Claude Code and Codex, and you need to prove it in CI — pick APM. The manifest is heavier because the problem is heavier, and the parts that feel like ceremony now (lockfiles, audit, policy) are the parts you&#39;ll be grateful for the first time a skill in a transitive package changes underneath you.</p>
+<p>The bigger point stands regardless of which you choose: agent configuration is code, it has dependencies, and copying it around by hand is the same mistake we already learned not to make with everything else. Pick a package manager. Commit the lockfile. Move on to the interesting problems.</p>
+
+      <footer class="article-footer">
+        <p class="muted"><em>João Moreira has spent 17+ years building Critical Manufacturing MES — as engineer, technical manager, architect, and developer advocate. He currently focuses on documentation and tools for the MES developer ecosystem.</em></p>
+        <p><a href="/#talks">← Back to all talks &amp; articles</a></p>
+      </footer>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>© <span id="year">2026</span> João Moreira · Porto, Portugal</p>
+    </div>
+  </footer>
+
+  <script src="/nav.js"></script>
+  <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+</body>
+</html>

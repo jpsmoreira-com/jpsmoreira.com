@@ -6,6 +6,13 @@
     <description>Articles by João Moreira on developer experience, MES, and software engineering.</description>
     <language>en</language>
     <item>
+      <title>Choosing an Agent Package Manager</title>
+      <link>https://jpsmoreira.com/articles/choosing-an-agent-package-manager</link>
+      <guid>https://jpsmoreira.com/articles/choosing-an-agent-package-manager</guid>
+      <pubDate>Mon, 21 Sep 2026 00:00:00 GMT</pubDate>
+      <description>I tried Sentry's dotagents and Microsoft's APM to share skills, prompts and MCP servers across a team. Here's why APM won.</description>
+    </item>
+    <item>
       <title>Debugging Is Developer Experience</title>
       <link>https://jpsmoreira.com/articles/debugging-is-developer-experience</link>
       <guid>https://jpsmoreira.com/articles/debugging-is-developer-experience</guid>
